@@ -17,6 +17,12 @@ pipeline {
                           userRemoteConfigs: [[url: "${GITHUB_URL}"]]])
             }
         }
+                        stage('Lint HTML') {
+            steps {
+                sh 'npm install htmlhint --save-dev'
+                sh 'npx htmlhint *.html'
+            }
+        }
 
         stage('Build Docker Image') {
             steps {
