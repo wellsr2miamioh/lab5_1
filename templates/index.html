@@ -6,12 +6,7 @@
 </head>
 <body>
     <h1>Database Table Contents</h1>
-    @app.route('/delete-all', methods=['POST'])
-def delete_all():
-    db = get_db()
-    db.execute('DELETE FROM contacts')
-    db.commit()
-    return 'All contacts deleted.', 200
+
     <table border="1">
         <tr>
             <th>ID</th>
