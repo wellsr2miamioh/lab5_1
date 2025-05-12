@@ -27,16 +27,17 @@ def init_db():
 @app.route('/', methods=['GET', 'POST'])
 def index():
     message = ''  # Message indicating the result of the operation
+    db = get_db()
+
     if request.method == 'POST':
-        # Check if it's a delete action
-        if request.form.get('action') == 'delete':
+        action = request.form.get('action')
+
+        if action == 'delete':
             contact_id = request.form.get('contact_id')
-            db = get_db()
             db.execute('DELETE FROM contacts WHERE id = ?', (contact_id,))
             db.commit()
             message = 'Contact deleted successfully.'
-
-               elif action == 'delete_all':
+        elif action == 'delete_all':
             db.execute('DELETE FROM contacts')
             db.commit()
             message = 'All contacts deleted successfully.'
@@ -44,18 +45,14 @@ def index():
             name = request.form.get('name')
             phone = request.form.get('phone')
             if name and phone:
-                db = get_db()
                 db.execute('INSERT INTO contacts (name, phone) VALUES (?, ?)', (name, phone))
                 db.commit()
                 message = 'Contact added successfully.'
             else:
                 message = 'Missing name or phone number.'
 
-    # Always display the contacts table
-    db = get_db()
     contacts = db.execute('SELECT * FROM contacts').fetchall()
 
-    # Display the HTML form along with the contacts table
     return render_template_string('''
         <!DOCTYPE html>
         <html>
@@ -71,7 +68,14 @@ def index():
                 <input type="text" id="phone" name="phone" required><br><br>
                 <input type="submit" value="Submit">
             </form>
+
+            <form method="POST" action="/" style="margin-top: 20px;">
+                <input type="hidden" name="action" value="delete_all">
+                <input type="submit" value="Delete All Contacts" style="background-color:red;color:white;">
+            </form>
+
             <p>{{ message }}</p>
+
             {% if contacts %}
                 <table border="1">
                     <tr>
@@ -104,3 +108,5 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     init_db()  # Initialize the database and table
     app.run(debug=True, host='0.0.0.0', port=port)
+``
+
