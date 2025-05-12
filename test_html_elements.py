@@ -15,7 +15,7 @@ class TestTaskData(unittest.TestCase):
 
     def test_task_data(self):
         driver = self.driver
-        driver.get("http://10.48.10.107")  # Replace with your target website
+        driver.get("http://10.48.10.170")  # Replace with your target website
         
         # Check for the presence of the 4 test tasks
         for i in range(4):
