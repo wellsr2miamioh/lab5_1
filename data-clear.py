@@ -5,16 +5,28 @@ DATABASE = '/nfs/demo.db'
 
 def connect_db():
     """Connect to the SQLite database."""
-    return sqlite3.connect(DATABASE)
+    try:
+        return sqlite3.connect(DATABASE)
+    except sqlite3.Error as e:
+        print(f"Error connecting to database: {e}")
+        return None
 
-def clear_test_contacts():
-    """Clear only the test contacts from the database."""
+def clear_test_tasks():
+    """Clear only the test tasks from the database."""
     db = connect_db()
-    # Assuming all test contacts follow a specific naming pattern
-    db.execute("DELETE FROM contacts WHERE name LIKE 'Test Name %'")
-    db.commit()
-    print('Test contacts have been deleted from the database.')
-    db.close()
+    if db is None:
+        print("Database connection failed, unable to clear test tasks.")
+        return
+    
+    try:
+        # Assuming all test tasks follow a specific naming pattern
+        db.execute("DELETE FROM tasks WHERE name LIKE 'Test Task %'")
+        db.commit()
+        print('Test tasks have been deleted from the database.')
+    except sqlite3.Error as e:
+        print(f"Error during database operation: {e}")
+    finally:
+        db.close()
 
 if __name__ == '__main__':
-    clear_test_contacts()
+    clear_test_tasks()
