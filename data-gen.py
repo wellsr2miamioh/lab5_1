@@ -1,22 +1,26 @@
+
 import sqlite3
-import os
 
-DATABASE = '/nfs/demo.db'
+DATABASE = '/nfs/demo.db'  # Your database location
 
-def connect_db():
-    """Connect to the SQLite database."""
-    return sqlite3.connect(DATABASE)
+def generate_test_data():
+    db = sqlite3.connect(DATABASE)
+    db.row_factory = sqlite3.Row
 
-def generate_test_data(num_contacts):
-    """Generate test data for the contacts table."""
-    db = connect_db()
-    for i in range(num_contacts):
-        name = f'Test Name {i}'
-        phone = f'123-456-789{i}'
-        db.execute('INSERT INTO contacts (name, phone) VALUES (?, ?)', (name, phone))
-    db.commit()
-    print(f'{num_contacts} test contacts added to the database.')
-    db.close()
+    # Check if the table is empty
+    db.execute('SELECT COUNT(*) FROM tasks')
+    if db.fetchone()[0] == 0:
+        test_data = [
+            ('Test Task 1', 'Test Description for Task 1', 'pending'),
+            ('Test Task 2', 'Test Description for Task 2', 'completed'),
+            ('Test Task 3', 'Test Description for Task 3', 'pending'),
+            ('Test Task 4', 'Test Description for Task 4', 'completed')
+        ]
+        db.executemany('INSERT INTO tasks (name, description, status) VALUES (?, ?, ?)', test_data)
+        db.commit()
+        print("Test data generated successfully.")
+    else:
+        print("Test data already exists.")
 
-if __name__ == '__main__':
-    generate_test_data(10)  # Generate 10 test contacts.
+if __name__ == "__main__":
+    generate_test_data()
