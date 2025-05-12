@@ -35,6 +35,11 @@ def index():
             db.execute('DELETE FROM contacts WHERE id = ?', (contact_id,))
             db.commit()
             message = 'Contact deleted successfully.'
+
+               elif action == 'delete_all':
+            db.execute('DELETE FROM contacts')
+            db.commit()
+            message = 'All contacts deleted successfully.'
         else:
             name = request.form.get('name')
             phone = request.form.get('phone')
