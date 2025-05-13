@@ -16,11 +16,14 @@ def init_db():
     with app.app_context():
         db = get_db()
         db.execute('''
-            CREATE TABLE IF NOT EXISTS contacts (
+            CREATE TABLE IF NOT EXISTS tasks (
                 task_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 taskName TEXT NOT NULL,
                 taskDescription TEXT NOT NULL,
                 completed INTEGER DEFAULT 0
+                created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+                protected INTEGER DEFAULT 1
+
             );
         ''')
         db.commit()
@@ -33,11 +36,12 @@ def index():
         action = request.form.get('action')
         task_id = request.form.get('task_id')
 
-        if action == 'delete':
-            db = get_db()
-            db.execute('DELETE FROM tasks WHERE task_id = ?', (task_id,))
-            db.commit()
-            message = 'Task deleted successfully.'
+if action == 'delete':
+    db = get_db()
+    # Only delete if the task is NOT protected
+    db.execute('DELETE FROM tasks WHERE task_id = ? AND protected = 0', (task_id,))
+    db.commit()
+    message = 'Task deleted (if not protected).'
 
         elif action == 'complete':
             db = get_db()
@@ -45,16 +49,20 @@ def index():
             db.commit()
             message = 'Task marked as completed.'
 
-        else:
-            taskName = request.form.get('taskName')
-            taskDescription = request.form.get('taskDescription')
-            if taskName and taskDescription:
-                db = get_db()
-                db.execute('INSERT INTO tasks (taskName, taskDescription) VALUES (?, ?)', (taskName, taskDescription))
-                db.commit()
-                message = 'Task added successfully.'
-            else:
-                message = 'Missing task name or description.'
+  else:
+    taskName = request.form.get('taskName')
+    taskDescription = request.form.get('taskDescription')
+    if taskName and taskDescription:
+        db = get_db()
+        db.execute('''
+            INSERT INTO tasks (taskName, taskDescription, created_at, protected)
+            VALUES (?, ?, CURRENT_TIMESTAMP, 1)
+        ''', (taskName, taskDescription))
+        db.commit()
+        message = 'Task added successfully.'
+    else:
+        message = 'Missing task name or description.'
+
 
     db = get_db()
     tasks = db.execute('SELECT * FROM tasks').fetchall()
