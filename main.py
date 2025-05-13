@@ -60,25 +60,6 @@ def index():
     db = get_db()
     tasks = db.execute('SELECT * FROM tasks').fetchall()
 
-    @app.route('/cleanup-dastardly-tasks', methods=['POST'])
-def cleanup_dastardly_tasks():
-    db = get_db()
-    db.execute("""
-        DELETE FROM tasks 
-        WHERE taskDescription = 'SMNcQy'
-        AND (
-            taskName LIKE '%<%' OR
-            taskName LIKE '%>%'
-            OR taskName LIKE '%alert%' 
-            OR taskName LIKE '%a%' 
-            OR taskName LIKE '%&#%' 
-            OR taskName LIKE '%/%' 
-            OR taskName LIKE '%"%'
-            OR taskName LIKE '%=%'
-        )
-    """)
-    db.commit()
-    return "DAST test tasks cleaned up.", 200
 
 
     return render_template_string('''
@@ -143,6 +124,27 @@ def cleanup_dastardly_tasks():
         </body>
         </html>
     ''', message=message, tasks=tasks)
+
+    @app.route('/cleanup-dastardly-tasks', methods=['POST'])
+def cleanup_dastardly_tasks():
+    db = get_db()
+    db.execute("""
+        DELETE FROM tasks 
+        WHERE taskDescription = 'SMNcQy'
+        AND (
+            taskName LIKE '%<%' OR
+            taskName LIKE '%>%'
+            OR taskName LIKE '%alert%' 
+            OR taskName LIKE '%a%' 
+            OR taskName LIKE '%&#%' 
+            OR taskName LIKE '%/%' 
+            OR taskName LIKE '%"%'
+            OR taskName LIKE '%=%'
+        )
+    """)
+    db.commit()
+    return "DAST test tasks cleaned up.", 200
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
