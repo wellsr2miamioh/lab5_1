@@ -88,7 +88,28 @@ pipeline {
                 }
             }
         }
+                      stage ("Run Security Checks") {
+            steps {
+                //                                                                 ###change the IP address in this section to your cluster IP address!!!!####
+                sh 'docker pull public.ecr.aws/portswigger/dastardly:latest'
+                sh '''
+                 --read-only \
+                    docker run --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
+                    -e BURP_START_URL=http://10.48.10.107 \
+                    -e BURP_REPORT_FILE_PATH=${WORKSPACE}/dastardly-report.xml \
+                    public.ecr.aws/portswigger/dastardly:latest
+                '''
 
+            }
+        }
+
+
+
+
+
+
+
+        
          
         stage('Check Kubernetes Cluster') {
             steps {
