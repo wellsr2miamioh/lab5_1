@@ -15,7 +15,7 @@ def get_db():
 def init_db():
     with app.app_context():
         db = get_db()
-        db.execute('DROP TABLE IF EXISTS tasks')  # <-- force table rebuild
+        db.execute('DROP TABLE IF EXISTS tasks')  # Force table rebuild
         db.execute('''
             CREATE TABLE tasks (
                 task_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -25,7 +25,7 @@ def init_db():
             );
         ''')
         db.commit()
-        
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     message = ''  # Feedback message
@@ -123,9 +123,6 @@ def index():
     ''', message=message, tasks=tasks)
 
 @app.route('/cleanup-dastardly-tasks', methods=['POST'])
-
-@app.route('/cleanup-dastardly-tasks', methods=['POST'])
-
 def cleanup_dastardly_tasks():
     db = get_db()
     db.execute("""
@@ -134,7 +131,7 @@ def cleanup_dastardly_tasks():
     """)
     db.commit()
     return "DAST tasks cleaned up.", 200
-    
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     init_db()
