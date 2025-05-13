@@ -5,7 +5,7 @@ pipeline {
         DOCKER_CREDENTIALS_ID = 'roseaw-dockerhub'  
         DOCKER_IMAGE = 'cithit/wellsr2'                                   //<-----change this to your MiamiID!
         IMAGE_TAG = "build-${BUILD_NUMBER}"
-        GITHUB_URL = 'https://github.com/wellsr2miamioh/225-lab4-2.git'     //<-----change this to match this new repository!
+        GITHUB_URL = 'https://github.com/wellsr2miamioh/lab5_1.git'     //<-----change this to match this new repository!
         KUBECONFIG = credentials('wellsr2-225')                           //<-----change this to match your kubernetes credentials (MiamiID-225)! 
     }
 
@@ -48,7 +48,12 @@ pipeline {
                 }
             }
         }
-
+                        stage('Lint HTML') {
+            steps {
+                sh 'npm install htmlhint --save-dev'
+                sh 'npx htmlhint *.html'
+            }
+        }
         stage('Generate Test Data') {
             steps {
                 script {
@@ -82,7 +87,21 @@ pipeline {
                 }
             }
         }
-         
+                               stage ("Run Security Checks") {
+            steps {
+                //                                                                 ###change the IP address in this section to your cluster IP address!!!!####
+                sh 'docker pull public.ecr.aws/portswigger/dastardly:latest'
+                sh '''
+              
+                    docker run --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
+                    -e BURP_START_URL=http://10.48.10.107 \
+                    -e BURP_REPORT_FILE_PATH=${WORKSPACE}/dastardly-report.xml \
+                    public.ecr.aws/portswigger/dastardly:latest
+                '''
+
+            }
+        }
+
         stage('Check Kubernetes Cluster') {
             steps {
                 script {
