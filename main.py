@@ -15,16 +15,17 @@ def get_db():
 def init_db():
     with app.app_context():
         db = get_db()
+        db.execute('DROP TABLE IF EXISTS tasks')  # <-- force table rebuild
         db.execute('''
-            CREATE TABLE IF NOT EXISTS tasks (
+            CREATE TABLE tasks (
                 task_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                taskName VARCHAR(100) NOT NULL,
-                taskDescription VARCHAR(100) NOT NULL,
+                taskName TEXT NOT NULL,
+                taskDescription TEXT NOT NULL,
                 completed INTEGER DEFAULT 0
             );
         ''')
         db.commit()
-
+        
 @app.route('/', methods=['GET', 'POST'])
 def index():
     message = ''  # Feedback message
