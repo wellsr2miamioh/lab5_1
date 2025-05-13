@@ -60,8 +60,6 @@ def index():
     db = get_db()
     tasks = db.execute('SELECT * FROM tasks').fetchall()
 
-
-
     return render_template_string('''
         <!DOCTYPE html>
         <html>
@@ -71,7 +69,6 @@ def index():
             body {background-color: powderblue; font-family:Arial;}
             h1   {color: blue;}
             </style>
-            
         </head>
         <body>
             <h2>To-Do List</h2>
@@ -125,9 +122,29 @@ def index():
         </html>
     ''', message=message, tasks=tasks)
 
+@app.route('/cleanup-dastardly-tasks', methods=['POST'])
+def cleanup_dastardly_tasks():
+    db = get_db()
+    db.execute("""
+        DELETE FROM tasks 
+        WHERE taskDescription = 'SMNcQy'
+        AND (
+            taskName LIKE '%<%' OR
+            taskName LIKE '%>%'
+            OR taskName LIKE '%alert%' 
+            OR taskName LIKE '%a%' 
+            OR taskName LIKE '%&#%' 
+            OR taskName LIKE '%/%' 
+            OR taskName LIKE '%"%'
+            OR taskName LIKE '%=%'
+        )
+    """)
+    db.commit()
+    return "DAST test tasks cleaned up.", 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     init_db()
     app.run(debug=True, host='0.0.0.0', port=port)
+
 
