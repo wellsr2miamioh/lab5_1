@@ -123,25 +123,18 @@ def index():
     ''', message=message, tasks=tasks)
 
 @app.route('/cleanup-dastardly-tasks', methods=['POST'])
+
+@app.route('/cleanup-dastardly-tasks', methods=['POST'])
+
 def cleanup_dastardly_tasks():
     db = get_db()
     db.execute("""
         DELETE FROM tasks 
-        WHERE taskDescription = 'SMNcQy'
-        AND (
-            taskName LIKE '%<%' OR
-            taskName LIKE '%>%'
-            OR taskName LIKE '%alert%' 
-            OR taskName LIKE '%a%' 
-            OR taskName LIKE '%&#%' 
-            OR taskName LIKE '%/%' 
-            OR taskName LIKE '%"%'
-            OR taskName LIKE '%=%'
-        )
+        WHERE taskDescription LIKE '%DAST-GENERATED%'
     """)
     db.commit()
-    return "DAST test tasks cleaned up.", 200
-
+    return "DAST tasks cleaned up.", 200
+    
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     init_db()
