@@ -122,15 +122,6 @@ def index():
         </html>
     ''', message=message, tasks=tasks)
 
-@app.route('/cleanup-dastardly-tasks', methods=['POST'])
-def cleanup_dastardly_tasks():
-    db = get_db()
-    db.execute("""
-        DELETE FROM tasks 
-        WHERE taskDescription LIKE '%DAST-GENERATED%'
-    """)
-    db.commit()
-    return "DAST tasks cleaned up.", 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
