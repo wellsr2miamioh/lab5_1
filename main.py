@@ -9,15 +9,14 @@ DATABASE = '/nfs/demo.db'
 
 def get_db():
     db = sqlite3.connect(DATABASE)
-    db.row_factory = sqlite3.Row  # Enables dict-like access to rows
+    db.row_factory = sqlite3.Row  
     return db
 
 def init_db():
     with app.app_context():
         db = get_db()
-        db.execute('DROP TABLE IF EXISTS tasks')  # Force table rebuild
         db.execute('''
-            CREATE TABLE tasks (
+            CREATE TABLE IF NOT EXISTS contacts (
                 task_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 taskName TEXT NOT NULL,
                 taskDescription TEXT NOT NULL,
