@@ -98,6 +98,8 @@ pipeline {
                     -e BURP_REPORT_FILE_PATH=${WORKSPACE}/dastardly-report.xml \
                     public.ecr.aws/portswigger/dastardly:latest
                 '''
+                   // Call a cleanup endpoint after the scan
+                    sh 'curl -X POST http://10.48.10.179/cleanup-dastardly-tasks'
             }
         }
          
