@@ -78,6 +78,7 @@ def index():
                 <input type="text" id="taskDescription" name="taskDescription"><br><br>
                 <input type="submit" value="Submit">
             </form>
+            <h2>Total Tasks: </h2>
 
             <p>{{ message }}</p>
 
