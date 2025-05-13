@@ -18,8 +18,8 @@ def init_db():
         db.execute('''
             CREATE TABLE IF NOT EXISTS tasks (
                 task_id INTEGER PRIMARY KEY AUTOINCREMENT,
-                taskName TEXT NOT NULL,
-                taskDescription TEXT NOT NULL,
+                taskName VARCHAR(100) NOT NULL,
+                taskDescription VARCHAR(100) NOT NULL,
                 completed INTEGER DEFAULT 0
             );
         ''')
