@@ -67,12 +67,12 @@ def index():
             <link rel="stylesheet" href="styles.css">
         </head>
         <body>
-            <h2>Add Task</h2>
+            <h2>To-Do List</h2>
             <form method="POST" action="/">
                 <label for="taskName">Task Name:</label><br>
                 <input type="text" id="taskName" name="taskName" required><br>
                 <label for="taskDescription">Task Description:</label><br>
-                <input type="text" id="taskDescription" name="taskDescription" required><br><br>
+                <input type="text" id="taskDescription" name="taskDescription"><br><br>
                 <input type="submit" value="Submit">
             </form>
 
