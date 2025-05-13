@@ -94,7 +94,7 @@ pipeline {
                 sh 'docker pull public.ecr.aws/portswigger/dastardly:latest'
                 sh '''
               
-                    docker run --read-only --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
+                    docker run --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
                     -e BURP_START_URL=http://10.48.10.107 \
                     -e BURP_REPORT_FILE_PATH=${WORKSPACE}/dastardly-report.xml \
                     public.ecr.aws/portswigger/dastardly:latest
@@ -103,13 +103,6 @@ pipeline {
             }
         }
 
-
-
-
-
-
-
-        
          
         stage('Check Kubernetes Cluster') {
             steps {
