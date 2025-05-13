@@ -10,7 +10,7 @@ spec:
   accessModes:
     - ReadWriteMany
   nfs:
-    path:  /srv/nfs/wellsr2         #your MiamiID
+    path:  /srv/nfs/roseaw         #local reference change this!!!!
     server: 10.48.10.140
   persistentVolumeReclaimPolicy: Retain
 ---
@@ -27,11 +27,11 @@ spec:
   selector:
     matchLabels:
       type: nfs
----
+---      
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: flask-dev-deployment
+  name: flask-deployment
   labels:
     app: flask
 spec:
@@ -46,43 +46,27 @@ spec:
     spec:
       containers:
         - name: flask
-          image: cithit/wellsr2:latest    #your MiamiID
+          image: cithit/roseaw:latest   #<------change this!!!!!
           ports:
             - containerPort: 5000
           volumeMounts:
             - name: nfs-storage
-              mountPath: /nfs
+              mountPath: /nfs       
       volumes:
         - name: nfs-storage
           persistentVolumeClaim:
-            claimName: flask-pvc
+            claimName: flask-pvc    
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: flask-dev-service
-spec:                                   
+  name: flask-service
+spec:
+  type: LoadBalancer 
+  loadBalancerIP: 10.48.10.116              #<------change this!!!!                       
   ports:
   - protocol: TCP
-    port: 80  
+    port: 80
     targetPort: 5000
   selector:
     app: flask
-
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: nginx
-spec:
-  rules: 
-  - host: 
-    http:
-      paths:
-      - path: /
-        pathType: ImplementationSpecific
-        backend: 
-          service:
-            name: flask-dev-service
-            port:
-              number: 80
