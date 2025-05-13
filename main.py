@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template_string, redirect, url_for
+from flask import Flask, request, render_template_string
 import sqlite3
 import os
 
@@ -9,78 +9,101 @@ DATABASE = '/nfs/demo.db'
 
 def get_db():
     db = sqlite3.connect(DATABASE)
-    db.row_factory = sqlite3.Row  # This enables name-based access to columns
+    db.row_factory = sqlite3.Row  # Enables dict-like access to rows
     return db
 
 def init_db():
     with app.app_context():
         db = get_db()
         db.execute('''
-            CREATE TABLE IF NOT EXISTS contacts (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                phone TEXT NOT NULL
+            CREATE TABLE IF NOT EXISTS tasks (
+                task_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                taskName TEXT NOT NULL,
+                taskDescription TEXT NOT NULL,
+                completed INTEGER DEFAULT 0
             );
         ''')
         db.commit()
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    message = ''  # Message indicating the result of the operation
+    message = ''  # Feedback message
+
     if request.method == 'POST':
-        # Check if it's a delete action
-        if request.form.get('action') == 'delete':
-            contact_id = request.form.get('contact_id')
+        action = request.form.get('action')
+        task_id = request.form.get('task_id')
+
+        if action == 'delete':
             db = get_db()
-            db.execute('DELETE FROM contacts WHERE id = ?', (contact_id,))
+            db.execute('DELETE FROM tasks WHERE task_id = ?', (task_id,))
             db.commit()
-            message = 'Contact deleted successfully.'
+            message = 'Task deleted successfully.'
+
+        elif action == 'complete':
+            db = get_db()
+            db.execute('UPDATE tasks SET completed = 1 WHERE task_id = ?', (task_id,))
+            db.commit()
+            message = 'Task marked as completed.'
+
         else:
-            name = request.form.get('name')
-            phone = request.form.get('phone')
-            if name and phone:
+            taskName = request.form.get('taskName')
+            taskDescription = request.form.get('taskDescription')
+            if taskName and taskDescription:
                 db = get_db()
-                db.execute('INSERT INTO contacts (name, phone) VALUES (?, ?)', (name, phone))
+                db.execute('INSERT INTO tasks (taskName, taskDescription) VALUES (?, ?)', (taskName, taskDescription))
                 db.commit()
-                message = 'Contact added successfully.'
+                message = 'Task added successfully.'
             else:
-                message = 'Missing name or phone number.'
+                message = 'Missing task name or description.'
 
-    # Always display the contacts table
     db = get_db()
-    contacts = db.execute('SELECT * FROM contacts').fetchall()
+    tasks = db.execute('SELECT * FROM tasks').fetchall()
 
-    # Display the HTML form along with the contacts table
     return render_template_string('''
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Contacts</title>
+            <title>Task List</title>
+            <link rel="stylesheet" href="styles.css">
         </head>
         <body>
-            <h2>Add Contacts</h2>
+            <h2>Add Task</h2>
             <form method="POST" action="/">
-                <label for="name">Name:</label><br>
-                <input type="text" id="name" name="name" required><br>
-                <label for="phone">Phone Number:</label><br>
-                <input type="text" id="phone" name="phone" required><br><br>
+                <label for="taskName">Task Name:</label><br>
+                <input type="text" id="taskName" name="taskName" required><br>
+                <label for="taskDescription">Task Description:</label><br>
+                <input type="text" id="taskDescription" name="taskDescription" required><br><br>
                 <input type="submit" value="Submit">
             </form>
+
             <p>{{ message }}</p>
-            {% if contacts %}
+
+            {% if tasks %}
                 <table border="1">
                     <tr>
-                        <th>Name</th>
-                        <th>Phone Number</th>
+                        <th>Task Name</th>
+                        <th>Task Description</th>
+                        <th>Mark Complete</th>
                         <th>Delete</th>
                     </tr>
-                    {% for contact in contacts %}
-                        <tr>
-                            <td>{{ contact['name'] }}</td>
-                            <td>{{ contact['phone'] }}</td>
+                    {% for task in tasks %}
+                        <tr style="color: {% if task['completed'] %}gray{% else %}black{% endif %};">
+                            <td>{{ task['taskName'] }}</td>
+                            <td>{{ task['taskDescription'] }}</td>
+                            <td>
+                                {% if task['completed'] == 0 %}
+                                    <form method="POST" action="/">
+                                        <input type="hidden" name="task_id" value="{{ task['task_id'] }}">
+                                        <input type="hidden" name="action" value="complete">
+                                        <input type="submit" value="Mark Completed">
+                                    </form>
+                                {% else %}
+                                    ✅ Completed
+                                {% endif %}
+                            </td>
                             <td>
                                 <form method="POST" action="/">
-                                    <input type="hidden" name="contact_id" value="{{ contact['id'] }}">
+                                    <input type="hidden" name="task_id" value="{{ task['task_id'] }}">
                                     <input type="hidden" name="action" value="delete">
                                     <input type="submit" value="Delete">
                                 </form>
@@ -89,13 +112,14 @@ def index():
                     {% endfor %}
                 </table>
             {% else %}
-                <p>No contacts found.</p>
+                <p>No tasks found.</p>
             {% endif %}
         </body>
         </html>
-    ''', message=message, contacts=contacts)
+    ''', message=message, tasks=tasks)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    init_db()  # Initialize the database and table
+    init_db()
     app.run(debug=True, host='0.0.0.0', port=port)
+
