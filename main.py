@@ -65,7 +65,7 @@ def index():
         <html>
         <head>
             <title>Task List</title>
-            <link rel="stylesheet" href="styles.css">
+            <link rel="stylesheet" href="style.css">
         </head>
         <body>
             <h2>To-Do List</h2>
