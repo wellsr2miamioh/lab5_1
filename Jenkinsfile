@@ -6,18 +6,22 @@ pipeline {
         DOCKER_IMAGE = 'cithit/wellsr2'                                   //<-----change this to your MiamiID!
         IMAGE_TAG = "build-${BUILD_NUMBER}"
         GITHUB_URL = 'https://github.com/wellsr2miamioh/lab5_1.git'     //<-----change this to match this new repository!
-        KUBECONFIG = credentials('wellsr2-225')                           //<-----change this to match your kubernetes credentials (MiamiID-225)! 
+        KUBECONFIG = credentials('wellsr2-225')                           //<-----change this to match your kubernetes credentials (MiamiID-225)!
+        
+        BACKUP_SCRIPT = 'backup_db.py'  // Path to backup script
+        RESTORE_SCRIPT = 'restore_db.py'  // Path to restore script
     }
 
     stages {
         stage('Code Checkout') {
             steps {
                 cleanWs()
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']],
-                          userRemoteConfigs: [[url: "${GITHUB_URL}"]]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']]],
+                          userRemoteConfigs: [[url: "${GITHUB_URL}"]])
             }
         }
-                        stage('Lint HTML') {
+        
+        stage('Lint HTML') {
             steps {
                 sh 'npm install htmlhint --save-dev'
                 sh 'npx htmlhint *.html'
@@ -45,10 +49,8 @@ pipeline {
         stage('Deploy to Dev Environment') {
             steps {
                 script {
-                    // This sets up the Kubernetes configuration using the specified KUBECONFIG
                     def kubeConfig = readFile(KUBECONFIG)
                     sh "kubectl delete --all deployments --namespace=default"
-                    // This updates the deployment-dev.yaml to use the new image tag
                     sh "sed -i 's|${DOCKER_IMAGE}:latest|${DOCKER_IMAGE}:${IMAGE_TAG}|' deployment-dev.yaml"
                     sh "kubectl apply -f deployment-dev.yaml"
                 }
@@ -58,15 +60,13 @@ pipeline {
         stage('Generate Test Data') {
             steps {
                 script {
-                // Ensure the label accurately targets the correct pods.
-                def appPod = sh(script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
-                // Execute command within the pod. 
-                sh "kubectl get pods"
-                sh "sleep 15"
-                sh "kubectl exec ${appPod} -- python3 data-gen.py"
+                    def appPod = sh(script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
+                    sh "kubectl get pods"
+                    sh "sleep 15"
+                    sh "kubectl exec ${appPod} -- python3 data-gen.py"
                 }
             }
-    }
+        }
 
         stage("Run Acceptance Tests") {
             steps {
@@ -82,13 +82,13 @@ pipeline {
         stage('Remove Test Data') {
             steps {
                 script {
-                    // Run the python script to generate data to add to the database
                     def appPod = sh(script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
                     sh "kubectl exec ${appPod} -- python3 data-clear.py"
                 }
             }
         }
-  stage('Backup Database') {
+
+        stage('Backup Database') {
             steps {
                 script {
                     echo 'Backing up database using Python script...'
@@ -97,10 +97,9 @@ pipeline {
                 }
             }
         }
-        
-                      stage ("Run Security Checks") {
+
+        stage ("Run Security Checks") {
             steps {
-                //                                                                 ###change the IP address in this section to your cluster IP address!!!!####
                 sh 'docker pull public.ecr.aws/portswigger/dastardly:latest'
                 sh '''
                     docker run --user $(id -u) -v ${WORKSPACE}:${WORKSPACE}:rw \
@@ -108,7 +107,6 @@ pipeline {
                     -e BURP_REPORT_FILE_PATH=${WORKSPACE}/dastardly-report.xml \
                     public.ecr.aws/portswigger/dastardly:latest
                 '''
-
             }
         }
 
@@ -121,7 +119,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Check Kubernetes Cluster') {
             steps {
                 script {
@@ -132,7 +130,6 @@ pipeline {
     }
 
     post {
-
         success {
             slackSend color: "good", message: "Build Completed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
         }
@@ -143,3 +140,5 @@ pipeline {
             slackSend color: "danger", message: "Build Completed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
         }
     }
+}
+
