@@ -34,12 +34,12 @@ def index():
         action = request.form.get('action')
         task_id = request.form.get('task_id')
 
-    if action == 'delete':
-        db = get_db()
-        db.execute('DELETE FROM tasks WHERE task_id = ?', (task_id,))
-        db.commit()
-        message = 'Task deleted successfully.'
-        
+        if action == 'delete':
+            db = get_db()
+            db.execute('DELETE FROM tasks WHERE task_id = ?', (task_id,))
+            db.commit()
+            message = 'Task deleted successfully.'
+
         elif action == 'complete':
             db = get_db()
             db.execute('UPDATE tasks SET completed = 1 WHERE task_id = ?', (task_id,))
@@ -130,6 +130,5 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     init_db()
     app.run(debug=True, host='0.0.0.0', port=port)
-
 
 
