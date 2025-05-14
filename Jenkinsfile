@@ -54,7 +54,11 @@ pipeline {
                 }
             }
         }
-
+        stage('Backup Database') {
+            steps {
+                sh 'python3 backup_db.py'
+            }
+        }
         stage('Generate Test Data') {
             steps {
                 script {
@@ -102,6 +106,11 @@ pipeline {
             }
         }
 
+        stage('Restore Database') {
+            steps {
+                sh 'python3 restore_db.py'
+            }
+        }
         
         stage('Check Kubernetes Cluster') {
             steps {
