@@ -1,7 +1,6 @@
 from flask import Flask, request, render_template_string
 import sqlite3
 import os
-from datetime import datetime
 
 app = Flask(__name__)
 DATABASE = '/nfs/demo.db'
@@ -14,17 +13,16 @@ def get_db():
 def init_db():
     with app.app_context():
         db = get_db()
+        # Create table with protected flag only
         db.execute('''
             CREATE TABLE IF NOT EXISTS tasks (
-                task_id      INTEGER PRIMARY KEY AUTOINCREMENT,
-                taskName     TEXT    NOT NULL,
-                taskDescription TEXT NOT NULL,
-                completed    INTEGER DEFAULT 0,
-                created_at   TEXT    DEFAULT CURRENT_TIMESTAMP,
-                protected    INTEGER DEFAULT 1
+                task_id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                taskName        TEXT    NOT NULL,
+                taskDescription TEXT    NOT NULL,
+                completed       INTEGER DEFAULT 0,
+                protected       INTEGER DEFAULT 1
             );
         ''')
-
         db.commit()
 
 @app.route('/', methods=['GET', 'POST'])
@@ -32,11 +30,10 @@ def index():
     message = ''
 
     if request.method == 'POST':
-        action    = request.form.get('action')
-        task_id   = request.form.get('task_id')
+        action  = request.form.get('action')
+        task_id = request.form.get('task_id')
 
         if action == 'delete' and task_id:
-        
             db = get_db()
             db.execute('DELETE FROM tasks WHERE task_id = ?', (task_id,))
             db.commit()
@@ -53,77 +50,71 @@ def index():
             taskDescription = request.form.get('taskDescription')
             if taskName and taskDescription:
                 db = get_db()
-                # Explicitly set created_at so it never ends up blank
                 db.execute('''
-                    INSERT INTO tasks
-                      (taskName, taskDescription, created_at, protected)
-                    VALUES (?, ?, datetime('now'), 1)
+                    INSERT INTO tasks (taskName, taskDescription, protected)
+                    VALUES (?, ?, 1)
                 ''', (taskName, taskDescription))
                 db.commit()
                 message = 'Task added successfully.'
             else:
                 message = 'Missing task name or description.'
 
+    db = get_db()
+    tasks = db.execute('SELECT * FROM tasks').fetchall()
 
     return render_template_string('''
         <!DOCTYPE html>
         <html>
         <head>
-            <title>Task List</title>
-            <style>
-                body { background-color: powderblue; font-family: Arial; }
-                h2   { color: blue; }
-                table { border-collapse: collapse; width: 100%; }
-                th, td { border: 1px solid #444; padding: 8px; text-align: left; }
-            </style>
+          <title>Task List</title>
+          <style>
+            body { background-color: powderblue; font-family: Arial; }
+            h2   { color: blue; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #444; padding: 8px; text-align: left; }
+          </style>
         </head>
         <body>
-            <h2>To-Do List</h2>
-            <form method="POST" action="/">
-                <label>Task Name:</label><br>
-                <input type="text" name="taskName" required><br>
-                <label>Task Description:</label><br>
-                <input type="text" name="taskDescription"><br><br>
-                <input type="submit" value="Add Task">
-            </form>
+          <h2>To-Do List</h2>
+          <form method="POST">
+            <label>Task Name:</label><br>
+            <input type="text" name="taskName" required><br>
+            <label>Task Description:</label><br>
+            <input type="text" name="taskDescription"><br><br>
+            <input type="submit" value="Add Task">
+          </form>
+          <p>{{ message }}</p>
 
-            <p>{{ message }}</p>
-
-            {% if tasks %}
-                <table>
-                    <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Created At</th>
-                        <th>Completed</th>
-                        <th>Actions</th>
-                    </tr>
-                    {% for task in tasks %}
-                        <tr style="color: {% if task['completed'] %}gray{% else %}black{% endif %};">
-                            <td>{{ task['taskName'] }}</td>
-                            <td>{{ task['taskDescription'] }}</td>
-                            <td>{{ task['created_at'] }}</td>
-                            <td>{% if task['completed'] %}✅{% else %}—{% endif %}</td>
-                            <td>
-                                {% if not task['completed'] %}
-                                    <form style="display:inline" method="POST">
-                                        <input type="hidden" name="task_id" value="{{ task['task_id'] }}">
-                                        <input type="hidden" name="action" value="complete">
-                                        <input type="submit" value="Complete">
-                                    </form>
-                                {% endif %}
-                                <form style="display:inline" method="POST">
-                                    <input type="hidden" name="task_id" value="{{ task['task_id'] }}">
-                                    <input type="hidden" name="action" value="delete">
-                                    <input type="submit" value="Delete">
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </table>
-            {% else %}
-                <p>No tasks found.</p>
-            {% endif %}
+          {% if tasks %}
+            <table>
+              <tr>
+                <th>Name</th><th>Description</th><th>Completed</th><th>Actions</th>
+              </tr>
+              {% for task in tasks %}
+                <tr style="color: {% if task['completed'] %}gray{% else %}black{% endif %};">
+                  <td>{{ task['taskName'] }}</td>
+                  <td>{{ task['taskDescription'] }}</td>
+                  <td>{% if task['completed'] %}✅{% else %}—{% endif %}</td>
+                  <td>
+                    {% if not task['completed'] %}
+                      <form style="display:inline" method="POST">
+                        <input type="hidden" name="task_id" value="{{ task['task_id'] }}">
+                        <input type="hidden" name="action" value="complete">
+                        <input type="submit" value="Complete">
+                      </form>
+                    {% endif %}
+                    <form style="display:inline" method="POST">
+                      <input type="hidden" name="task_id" value="{{ task['task_id'] }}">
+                      <input type="hidden" name="action" value="delete">
+                      <input type="submit" value="Delete">
+                    </form>
+                  </td>
+                </tr>
+              {% endfor %}
+            </table>
+          {% else %}
+            <p>No tasks found.</p>
+          {% endif %}
         </body>
         </html>
     ''', message=message, tasks=tasks)
