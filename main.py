@@ -25,20 +25,6 @@ def init_db():
             );
         ''')
 
-    # 2) Migrate: add created_at column if missing
-        try:
-            db.execute("ALTER TABLE tasks ADD COLUMN created_at TEXT DEFAULT CURRENT_TIMESTAMP;")
-        except sqlite3.OperationalError:
-            # Already exists
-            pass
-
-        # 3) Migrate: add protected column if missing
-        try:
-            db.execute("ALTER TABLE tasks ADD COLUMN protected INTEGER DEFAULT 1;")
-        except sqlite3.OperationalError:
-            # Already exists
-            pass
-
         db.commit()
 
 @app.route('/', methods=['GET', 'POST'])
@@ -78,18 +64,6 @@ def index():
             else:
                 message = 'Missing task name or description.'
 
-    db = get_db()
-    raw_tasks = db.execute('SELECT * FROM tasks ORDER BY created_at DESC').fetchall()
-    tasks = []
-    for row in raw_tasks:
-        t = dict(row)
-        # format timestamp
-        try:
-            dt = datetime.strptime(t['created_at'], "%Y-%m-%d %H:%M:%S")
-            t['created_at'] = dt.strftime("%b %d, %Y – %I:%M %p")
-        except:
-            pass
-        tasks.append(t)
 
     return render_template_string('''
         <!DOCTYPE html>
