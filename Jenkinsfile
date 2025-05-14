@@ -54,11 +54,7 @@ pipeline {
                 }
             }
         }
-        stage('Backup Database') {
-            steps {
-                sh 'python3 backup_db.py'
-            }
-        }
+
         stage('Generate Test Data') {
             steps {
                 script {
@@ -106,9 +102,13 @@ pipeline {
             }
         }
 
-        stage('Restore Database') {
+
+        stage('Remove DAST Data') {
             steps {
-                sh 'python3 restore_db.py'
+                script {
+                    def appPod = sh(script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
+                    sh "kubectl exec ${appPod} -- python3 DASTCleanup.py"
+                }
             }
         }
         
@@ -133,4 +133,3 @@ pipeline {
             slackSend color: "danger", message: "Build Completed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
         }
     }
-}
