@@ -110,7 +110,8 @@ pipeline {
                     sh "kubectl exec ${appPod} -- python3 DASTCleanup.py"
             }
         }
-    }
+    
+    
         stage('Check Kubernetes Cluster') {
             steps {
                 script {
