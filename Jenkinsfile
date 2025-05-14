@@ -132,4 +132,4 @@ pipeline {
             slackSend color: "danger", message: "Build Completed: ${env.JOB_NAME} ${env.BUILD_NUMBER}"
         }
     }
-}
+
