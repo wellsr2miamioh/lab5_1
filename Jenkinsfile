@@ -8,8 +8,6 @@ pipeline {
         GITHUB_URL = 'https://github.com/wellsr2miamioh/lab5_1.git'     //<-----change this to match this new repository!
         KUBECONFIG = credentials('wellsr2-225')                           //<-----change this to match your kubernetes credentials (MiamiID-225)!
         
-        BACKUP_SCRIPT = 'backup_db.py'  // Path to backup script
-        RESTORE_SCRIPT = 'restore_db.py'  // Path to restore script
     }
 
     stages {
@@ -91,8 +89,6 @@ pipeline {
         stage('Backup Database') {
             steps {
                 script {
-                    echo 'Backing up database using Python script...'
-                    // Run the backup script
                     sh "python3 ${BACKUP_SCRIPT}"
                 }
             }
@@ -113,8 +109,6 @@ pipeline {
         stage('Restore Database') {
             steps {
                 script {
-                    echo 'Restoring database from backup...'
-                    // Run the restore script
                     sh "python3 ${RESTORE_SCRIPT}"
                 }
             }
