@@ -36,7 +36,7 @@ def index():
         task_id   = request.form.get('task_id')
 
         if action == 'delete' and task_id:
-            # DELETE ignores protected flag entirely
+        
             db = get_db()
             db.execute('DELETE FROM tasks WHERE task_id = ?', (task_id,))
             db.commit()
