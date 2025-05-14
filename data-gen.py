@@ -1,26 +1,38 @@
 import sqlite3
-import os
+from datetime import datetime, timedelta
 
 DATABASE = '/nfs/demo.db'
 
 def connect_db():
-    """Connect to the SQLite database."""
     return sqlite3.connect(DATABASE)
 
-def generate_test_tasks(num_tasks):
-    """Generate test data for the tasks table."""
+def clear_test_tasks():
+    """Delete tasks that follow a specific naming pattern (e.g., 'Test Task %')."""
     db = connect_db()
-    for i in range(num_tasks):
-        task_name = f'Test Task {i}'
-        task_description = f'This is a description for task {i}'
-        db.execute(
-            'INSERT INTO tasks (taskName, taskDescription, completed) VALUES (?, ?, ?)',
-            (task_name, task_description, 0)
-        )
+    db.execute("DELETE FROM tasks WHERE taskName LIKE 'Test Task %'")
     db.commit()
-    print(f'{num_tasks} test tasks added to the database.')
+    print('Test tasks have been deleted from the database.')
+    db.close()
+
+def clear_dast_tasks():
+    """Delete unprotected tasks created recently (e.g., by DAST scans)."""
+    db = connect_db()
+    cursor = db.cursor()
+
+    cutoff = datetime.utcnow() - timedelta(minutes=10)
+    cutoff_str = cutoff.strftime('%Y-%m-%d %H:%M:%S')
+
+    cursor.execute("""
+        DELETE FROM tasks
+        WHERE protected = 0 AND created_at >= ?
+    """, (cutoff_str,))
+    db.commit()
+    print(f"DAST cleanup: Deleted unprotected tasks created after {cutoff_str}")
     db.close()
 
 if __name__ == '__main__':
-    generate_test_tasks(10)  # Add 10 test tasks
+    # You can call either or both
+    clear_test_tasks()
+    clear_dast_tasks()
+
 
