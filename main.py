@@ -15,7 +15,7 @@ def init_db():
     with app.app_context():
         db = get_db()
         db.execute('''
-            CREATE TABLE IF NOT EXISTS tasksList (
+            CREATE TABLE IF NOT EXISTS tasks (
                 task_id      INTEGER PRIMARY KEY AUTOINCREMENT,
                 taskName     TEXT    NOT NULL,
                 taskDescription TEXT NOT NULL,
