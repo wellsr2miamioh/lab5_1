@@ -1,38 +1,34 @@
-import sqlite3
-from datetime import datetime, timedelta
-
-DATABASE = '/nfs/demo.db'
-
-def connect_db():
+ata-gen.py
++12
+-8
+Original file line number	Diff line number	Diff line change
+@@ -7,16 +7,20 @@ def connect_db():
+    """Connect to the SQLite database."""
     return sqlite3.connect(DATABASE)
 
-def clear_test_tasks():
-    """Delete tasks that follow a specific naming pattern (e.g., 'Test Task %')."""
+def generate_test_data(num_contacts):
+    """Generate test data for the contacts table."""
+def generate_test_tasks(num_tasks):
+    """Generate test data for the tasks table."""
     db = connect_db()
-    db.execute("DELETE FROM tasks WHERE taskName LIKE 'Test Task %'")
+    for i in range(num_contacts):
+        name = f'Test Name {i}'
+        phone = f'123-456-789{i}'
+        db.execute('INSERT INTO contacts (name, phone) VALUES (?, ?)', (name, phone))
+    for i in range(num_tasks):
+        task_name = f'Test Task {i}'
+        task_description = f'This is a description for task {i}'
+        db.execute(
+            'INSERT INTO tasks (taskName, taskDescription, completed) VALUES (?, ?, ?)',
+            (task_name, task_description, 0)
+        )
     db.commit()
-    print('Test tasks have been deleted from the database.')
-    db.close()
-
-def clear_dast_tasks():
-    """Delete unprotected tasks created recently (e.g., by DAST scans)."""
-    db = connect_db()
-    cursor = db.cursor()
-
-    cutoff = datetime.utcnow() - timedelta(minutes=10)
-    cutoff_str = cutoff.strftime('%Y-%m-%d %H:%M:%S')
-
-    cursor.execute("""
-        DELETE FROM tasks
-        WHERE protected = 0 AND created_at >= ?
-    """, (cutoff_str,))
-    db.commit()
-    print(f"DAST cleanup: Deleted unprotected tasks created after {cutoff_str}")
+    print(f'{num_contacts} test contacts added to the database.')
+    print(f'{num_tasks} test tasks added to the database.')
     db.close()
 
 if __name__ == '__main__':
-    # You can call either or both
-    clear_test_tasks()
-    clear_dast_tasks()
+    generate_test_data(10)  # Generate 10 test contacts.
+    generate_test_tasks(10)  # Add 10 test tasks
 
 
