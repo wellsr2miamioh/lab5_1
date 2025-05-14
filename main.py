@@ -20,7 +20,7 @@ def init_db():
                 taskName        TEXT    NOT NULL,
                 taskDescription TEXT    NOT NULL,
                 completed       INTEGER DEFAULT 0,
-                protected       INTEGER DEFAULT 1
+                protected       INTEGER DEFAULT 0
             );
         ''')
         db.commit()
@@ -52,8 +52,7 @@ def index():
                 db = get_db()
                 db.execute('''
                     INSERT INTO tasks (taskName, taskDescription, protected)
-                    VALUES (?, ?, 1)
-                ''', (taskName, taskDescription))
+                    VALUES (?, ?, 1) ''', (taskName, taskDescription))
                 db.commit()
                 message = 'Task added successfully.'
             else:
