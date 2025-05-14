@@ -14,10 +14,11 @@ pipeline {
         stage('Code Checkout') {
             steps {
                 cleanWs()
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']]],
-                          userRemoteConfigs: [[url: "${GITHUB_URL}"]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']],
+                          userRemoteConfigs: [[url: "${GITHUB_URL}"]]])
             }
         }
+           
         
         stage('Lint HTML') {
             steps {
