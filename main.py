@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template_string
 import sqlite3
-import os
+import os+
+import datetime
 
 app = Flask(__name__)
 
@@ -99,9 +100,10 @@ def index():
                     </tr>
                     {% for task in tasks %}
                         <tr style="color: {% if task['completed'] %}gray{% else %}black{% endif %};">
+                            <td>{{ task['created_at'] }}</td>
                             <td>{{ task['taskName'] }}</td>
                             <td>{{ task['taskDescription'] }}</td>
-                            <td>{{ task['created_at'] }}</td>
+                            
                             <td>
                                 {% if task['completed'] == 0 %}
                                     <form method="POST" action="/">
