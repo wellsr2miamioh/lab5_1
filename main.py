@@ -82,13 +82,16 @@ def index():
                 <input type="text" id="taskDescription" name="taskDescription"><br><br>
                 <input type="submit" value="Submit">
             </form>
-            <h2>Total Tasks:</h2>
-
+            <h3>Total Tasks: </h3>
+            <h3>Completed Tasks: </h3>
+            <h3>Tasks Left: </h3>
+            <br>
             <p>{{ message }}</p>
 
             {% if tasks %}
                 <table border="1">
                     <tr>
+                        <th>Date/Time</th>
                         <th>Task Name</th>
                         <th>Task Description</th>
                         <th>Mark Complete</th>
@@ -98,6 +101,7 @@ def index():
                         <tr style="color: {% if task['completed'] %}gray{% else %}black{% endif %};">
                             <td>{{ task['taskName'] }}</td>
                             <td>{{ task['taskDescription'] }}</td>
+                            <td>{{ task['created_at'] }}</td>
                             <td>
                                 {% if task['completed'] == 0 %}
                                     <form method="POST" action="/">
