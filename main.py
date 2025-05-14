@@ -34,12 +34,12 @@ def index():
         action = request.form.get('action')
         task_id = request.form.get('task_id')
 
-        if action == 'delete':
-            db = get_db()
-            db.execute('DELETE FROM tasks WHERE task_id = ? AND protected = 0', (task_id,))
-            db.commit()
-            message = 'Task deleted (if not protected).'
-
+    if action == 'delete':
+        db = get_db()
+        db.execute('DELETE FROM tasks WHERE task_id = ?', (task_id,))
+        db.commit()
+        message = 'Task deleted successfully.'
+        
         elif action == 'complete':
             db = get_db()
             db.execute('UPDATE tasks SET completed = 1 WHERE task_id = ?', (task_id,))
