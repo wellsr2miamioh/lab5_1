@@ -1,10 +1,9 @@
 from flask import Flask, request, render_template_string
 import sqlite3
 import os
-import datetime
+from datetime import datetime
 
 app = Flask(__name__)
-
 DATABASE = '/nfs/demo.db'
 
 def get_db():
@@ -35,13 +34,18 @@ def index():
         action = request.form.get('action')
         task_id = request.form.get('task_id')
 
-        if action == 'delete':
+        if action == 'delete' and task_id:
             db = get_db()
-            db.execute('DELETE FROM tasks WHERE task_id = ?', (task_id,))
-            db.commit()
-            message = 'Task deleted successfully.'
+            cur = db.execute('SELECT protected FROM tasks WHERE task_id = ?', (task_id,))
+            row = cur.fetchone()
+            if row and row['protected']:
+                message = 'Cannot delete a protected task.'
+            else:
+                db.execute('DELETE FROM tasks WHERE task_id = ?', (task_id,))
+                db.commit()
+                message = 'Task deleted successfully.'
 
-        elif action == 'complete':
+        elif action == 'complete' and task_id:
             db = get_db()
             db.execute('UPDATE tasks SET completed = 1 WHERE task_id = ?', (task_id,))
             db.commit()
@@ -53,8 +57,8 @@ def index():
             if taskName and taskDescription:
                 db = get_db()
                 db.execute('''
-                    INSERT INTO tasks (taskName, taskDescription, created_at, protected)
-                    VALUES (?, ?, CURRENT_TIMESTAMP, 1)
+                    INSERT INTO tasks (taskName, taskDescription, protected)
+                    VALUES (?, ?, 1)
                 ''', (taskName, taskDescription))
                 db.commit()
                 message = 'Task added successfully.'
@@ -62,7 +66,17 @@ def index():
                 message = 'Missing task name or description.'
 
     db = get_db()
-    tasks = db.execute('SELECT * FROM tasks').fetchall()
+    raw_tasks = db.execute('SELECT * FROM tasks').fetchall()
+    tasks = []
+
+    for task in raw_tasks:
+        task = dict(task)
+        try:
+            dt = datetime.strptime(task['created_at'], "%Y-%m-%d %H:%M:%S")
+            task['created_at'] = dt.strftime("%b %d, %Y – %I:%M %p")
+        except:
+            pass
+        tasks.append(task)
 
     return render_template_string('''
         <!DOCTYPE html>
@@ -70,8 +84,8 @@ def index():
         <head>
             <title>Task List</title>
             <style>
-            body {background-color: powderblue; font-family: Arial;}
-            h1 {color: blue;}
+                body { background-color: powderblue; font-family: Arial; }
+                h1 { color: blue; }
             </style>
         </head>
         <body>
@@ -83,27 +97,21 @@ def index():
                 <input type="text" id="taskDescription" name="taskDescription"><br><br>
                 <input type="submit" value="Submit">
             </form>
-            <h3>Total Tasks: </h3>
-            <h3>Completed Tasks: </h3>
-            <h3>Tasks Left: </h3>
-            <br>
             <p>{{ message }}</p>
-
             {% if tasks %}
                 <table border="1">
                     <tr>
-                        <th>Date/Time</th>
                         <th>Task Name</th>
                         <th>Task Description</th>
+                        <th>Created At</th>
                         <th>Mark Complete</th>
                         <th>Delete</th>
                     </tr>
                     {% for task in tasks %}
                         <tr style="color: {% if task['completed'] %}gray{% else %}black{% endif %};">
-                            <td>{{ task['created_at'] }}</td>
                             <td>{{ task['taskName'] }}</td>
                             <td>{{ task['taskDescription'] }}</td>
-                            
+                            <td>{{ task['created_at'] }}</td>
                             <td>
                                 {% if task['completed'] == 0 %}
                                     <form method="POST" action="/">
@@ -136,5 +144,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     init_db()
     app.run(debug=True, host='0.0.0.0', port=port)
-
 
