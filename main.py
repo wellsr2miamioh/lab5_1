@@ -24,6 +24,8 @@ def init_db():
                 protected    INTEGER DEFAULT 1
             );
         ''')
+
+         db.execute("ALTER TABLE tasks ADD COLUMN created_at TEXT DEFAULT CURRENT_TIMESTAMP;")
         db.commit()
 
 @app.route('/', methods=['GET', 'POST'])
