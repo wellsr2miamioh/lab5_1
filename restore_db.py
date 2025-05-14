@@ -30,3 +30,6 @@ def restore_db():
             print("No backup to restore from.")
     except Exception as e:
         print(f"Error during restore: {e}")
+
+if __name__ == "__main__":
+    restore_db()
