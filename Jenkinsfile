@@ -89,7 +89,8 @@ pipeline {
         stage('Backup Database') {
             steps {
                 script {
-                    sh "python3 ${BACKUP_SCRIPT}"
+                    def appPod = sh(script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
+                    sh "kubectl exec ${appPod} -- python3 backup_db.py"
                 }
             }
         }
@@ -109,7 +110,8 @@ pipeline {
         stage('Restore Database') {
             steps {
                 script {
-                    sh "python3 ${RESTORE_SCRIPT}"
+                    def appPod = sh(script: "kubectl get pods -l app=flask -o jsonpath='{.items[0].metadata.name}'", returnStdout: true).trim()
+                    sh "kubectl exec ${appPod} -- python3 restore_db.py"
                 }
             }
         }
