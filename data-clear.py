@@ -15,5 +15,5 @@ def clear_test_tasks():
 
 
 if __name__ == '__main__':
-    clear_test_tasks()  # optional: only call if you still want this
-    clear_dast_tasks()  # this is your DAST-focused cleanup
+    clear_test_tasks()  
+
