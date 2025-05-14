@@ -1,7 +1,7 @@
 import shutil
 
-original = '/nfs/data/demo.db'
-backup = '/nfs/data/demo_backup.db'
+original = '/nfs/demo.db'
+backup = '/nfs/demo_backup.db'
 
 shutil.copyfile(original, backup)
 print("Database backed up.")
