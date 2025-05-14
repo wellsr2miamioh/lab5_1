@@ -25,7 +25,20 @@ def init_db():
             );
         ''')
 
-         db.execute("ALTER TABLE tasks ADD COLUMN created_at TEXT DEFAULT CURRENT_TIMESTAMP;")
+    # 2) Migrate: add created_at column if missing
+        try:
+            db.execute("ALTER TABLE tasks ADD COLUMN created_at TEXT DEFAULT CURRENT_TIMESTAMP;")
+        except sqlite3.OperationalError:
+            # Already exists
+            pass
+
+        # 3) Migrate: add protected column if missing
+        try:
+            db.execute("ALTER TABLE tasks ADD COLUMN protected INTEGER DEFAULT 1;")
+        except sqlite3.OperationalError:
+            # Already exists
+            pass
+
         db.commit()
 
 @app.route('/', methods=['GET', 'POST'])
