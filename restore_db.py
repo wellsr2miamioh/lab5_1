@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import shutil
 
 DATABASE = '/nfs/demo.db'
 BACKUP_DIR = '/nfs/backups'
