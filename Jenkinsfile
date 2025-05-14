@@ -88,6 +88,16 @@ pipeline {
                 }
             }
         }
+  stage('Backup Database') {
+            steps {
+                script {
+                    echo 'Backing up database using Python script...'
+                    // Run the backup script
+                    sh "python3 ${BACKUP_SCRIPT}"
+                }
+            }
+        }
+        
                       stage ("Run Security Checks") {
             steps {
                 //                                                                 ###change the IP address in this section to your cluster IP address!!!!####
@@ -102,7 +112,15 @@ pipeline {
             }
         }
 
-
+        stage('Restore Database') {
+            steps {
+                script {
+                    echo 'Restoring database from backup...'
+                    // Run the restore script
+                    sh "python3 ${RESTORE_SCRIPT}"
+                }
+            }
+        }
         
         stage('Check Kubernetes Cluster') {
             steps {
